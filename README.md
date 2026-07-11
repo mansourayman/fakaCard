@@ -49,4 +49,3 @@ Expected response:
 ```
 "# fakaCard" 
 "# fakaCard" 
-"# fakaCard" 

@@ -6,6 +6,8 @@ import '../models/operation_log.dart';
 import '../services/connectivity_service.dart';
 import '../services/log_store.dart';
 import '../services/vodafone_api_service.dart';
+import '../widgets/app_notification.dart';
+import '../widgets/developer_signature.dart';
 import '../widgets/product_selector.dart';
 import 'history_screen.dart';
 
@@ -38,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _submit() async {
+    if (_submitting) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _submitting = true);
@@ -61,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (error) {
       result = VodafoneOrderResult(
         success: false,
-        message: error.toString(),
+        message: cleanErrorMessage(error),
       );
     }
 
@@ -79,13 +82,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (!mounted) return;
     setState(() => _submitting = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor:
-            result.success ? const Color(0xFF057A55) : const Color(0xFFB42318),
-        content: Text(result.message, textAlign: TextAlign.right),
-      ),
+    showAppNotification(
+      context,
+      message: result.message,
+      type: result.success
+          ? AppNotificationType.success
+          : AppNotificationType.error,
     );
 
     if (result.success) {
@@ -109,7 +111,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           actions: [
             IconButton(
               tooltip: 'سجل العمليات',
-              onPressed: _openHistory,
+              onPressed: _submitting ? null : _openHistory,
               icon: const Icon(Icons.receipt_long_rounded),
             ),
           ],
@@ -182,13 +184,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: _openHistory,
+                  onPressed: _submitting ? null : _openHistory,
                   icon: const Icon(Icons.history_rounded),
                   label: const Text('عرض السجل'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                   ),
                 ),
+                const DeveloperSignature(),
               ],
             ),
           ),

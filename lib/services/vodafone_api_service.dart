@@ -159,7 +159,7 @@ class VodafoneApiService {
       },
     );
 
-    if (response.statusCode != 200) {
+    if (!_isSuccessfulOrderStatus(response.statusCode)) {
       return VodafoneOrderResult(
         success: false,
         message: _extractMessage(response.body) ?? 'فشل تنفيذ العملية',
@@ -169,17 +169,7 @@ class VodafoneApiService {
 
     try {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      final code = data['code']?.toString();
       final state = data['state']?.toString();
-      final reason = data['reason']?.toString();
-
-      if (code != null && code != '0000') {
-        return VodafoneOrderResult(
-          success: false,
-          message: reason ?? 'فشلت العملية',
-          statusCode: response.statusCode,
-        );
-      }
 
       return VodafoneOrderResult(
         success: true,
@@ -195,6 +185,10 @@ class VodafoneApiService {
         statusCode: response.statusCode,
       );
     }
+  }
+
+  bool _isSuccessfulOrderStatus(int statusCode) {
+    return statusCode >= 200 && statusCode <= 203;
   }
 
   Future<_SeamlessResult> _getSeamlessAndMsisdn() async {

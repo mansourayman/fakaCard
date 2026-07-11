@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/backend_auth_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/vodafone_api_service.dart';
+import '../widgets/app_notification.dart';
+import '../widgets/developer_signature.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _connectivity = const ConnectivityService();
 
   bool _loading = false;
-  String? _error;
 
   @override
   void dispose() {
@@ -31,11 +32,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
+    if (_loading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _loading = true;
-      _error = null;
     });
 
     try {
@@ -59,7 +60,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      showAppNotification(
+        context,
+        message: cleanErrorMessage(error),
+        type: AppNotificationType.error,
+      );
     } finally {
       if (mounted) {
         setState(() => _loading = false);
@@ -167,10 +172,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         return null;
                       },
                     ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 18),
-                      _ErrorBox(message: _error!),
-                    ],
                     const SizedBox(height: 26),
                     FilledButton.icon(
                       onPressed: _loading ? null : _login,
@@ -186,6 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         minimumSize: const Size.fromHeight(54),
                       ),
                     ),
+                    const DeveloperSignature(),
                   ],
                 ),
               ),
@@ -209,37 +211,6 @@ class _SoftCircle extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-
-class _ErrorBox extends StatelessWidget {
-  const _ErrorBox({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFECEC),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFC7C7)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Color(0xFFB42318)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              textAlign: TextAlign.right,
-              style: const TextStyle(color: Color(0xFF8A1F17)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
